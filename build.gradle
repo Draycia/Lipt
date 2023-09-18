@@ -1,0 +1,67 @@
+plugins {
+    id 'java'
+    id("xyz.jpenilla.run-paper") version "2.1.0"
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
+}
+
+group = 'net.draycia'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+    maven {
+        name = "papermc-repo"
+        url = "https://repo.papermc.io/repository/maven-public/"
+    }
+    maven {
+        name = "sonatype"
+        url = "https://oss.sonatype.org/content/groups/public/"
+    }
+}
+
+dependencies {
+    compileOnly "io.papermc.paper:paper-api:1.20.1-R0.1-SNAPSHOT"
+
+    // https://mvnrepository.com/artifact/org.luaj/luaj-jse
+    implementation 'org.luaj:luaj-jse:3.0.1'
+
+    // https://mvnrepository.com/artifact/org.reflections/reflections
+    implementation 'org.reflections:reflections:0.10.2'
+}
+
+def targetJavaVersion = 17
+java {
+    def javaVersion = JavaVersion.toVersion(targetJavaVersion)
+    sourceCompatibility = javaVersion
+    targetCompatibility = javaVersion
+    if (JavaVersion.current() < javaVersion) {
+        toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible()) {
+        options.release = targetJavaVersion
+    }
+}
+
+processResources {
+    def props = [version: version]
+    inputs.properties props
+    filteringCharset 'UTF-8'
+    filesMatching('paper-plugin.yml') {
+        expand props
+    }
+}
+
+build.dependsOn(shadowJar);
+
+tasks {
+    runServer {
+        // Configure the Minecraft version for our task.
+        // This is the only required configuration besides applying the plugin.
+        // Your plugin's jar (or shadowJar if present) will be used automatically.
+        minecraftVersion("1.20.1")
+        jvmArgs("-Dterminal.jline=false -Dterminal.ansi=true -Dcom.mojang.eula.agree=true")
+    }
+}

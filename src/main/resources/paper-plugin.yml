@@ -1,0 +1,4 @@
+name: Lipt
+version: '${version}'
+main: net.draycia.lipt.Lipt
+api-version: '1.20'
