@@ -1,5 +1,6 @@
 package net.draycia.lipt.libs;
 
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -11,6 +12,7 @@ import net.draycia.lipt.Lipt;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageByBlockEvent;
 import org.bukkit.plugin.EventExecutor;
 import org.luaj.vm2.LuaError;
 import org.luaj.vm2.LuaValue;
@@ -93,7 +95,6 @@ public class LiptEvent extends TwoArgFunction {
         private Set<Class<? extends Event>> eventClasses;
         private List<String> validEvents;
         private final Map<String, List<LuaValue>> luaListeners = new HashMap<>();
-        //private final List<LuaValue> playerJoinValues = new ArrayList<>();
         private final Lipt lipt;
 
         On(final Lipt lipt) {
@@ -119,21 +120,23 @@ public class LiptEvent extends TwoArgFunction {
         }
 
         private void locateEvents() {
-            Reflections reflections = new Reflections("org.bukkit");// change to also find custom events
-            eventClasses = reflections.getSubTypesOf(Event.class).stream().
-                filter(clazz -> Arrays.stream(clazz.getDeclaredFields())
-                    .anyMatch(field -> field.getType().getName().endsWith("HandlerList")))
+            final Reflections reflections = new Reflections("org.bukkit");// change to also find custom events
+            this.eventClasses = reflections.getSubTypesOf(Event.class).stream()
+                // Filter out abstract events and interfaces, the old method (filtering by handler list) removes events which extend other events (e.g. EntityDamageByBlockEvent)
+                .filter(clazz -> !Modifier.isAbstract(clazz.getModifiers()) && !Modifier.isInterface(clazz.getModifiers()))
                 .collect(Collectors.toSet());
 
-            validEvents = eventClasses.stream().map(Class::getSimpleName).toList();
+            this.validEvents = this.eventClasses.stream().map(Class::getSimpleName).toList();
 
-            this.lipt.getLogger().info("Found " + eventClasses.size() + " available events!");
+            this.lipt.getLogger().info("Found " + this.eventClasses.size() + " available events!");
         }
 
         private void registerListeners() {
-            EventExecutor eventExecutor = (listener, event) -> iGetCalledForEveryEvent(event);
-            eventClasses.forEach(clazz -> this.lipt.getServer().getPluginManager()
+            final EventExecutor eventExecutor = (listener, event) -> iGetCalledForEveryEvent(event);
+            this.eventClasses.forEach(clazz -> this.lipt.getServer().getPluginManager()
                 .registerEvent(clazz, this, EventPriority.MONITOR, eventExecutor, this.lipt));
+
+            this.lipt.getServer().getPluginManager().registerEvent(EntityDamageByBlockEvent.class, this, EventPriority.MONITOR, eventExecutor, this.lipt);
         }
 
         private final String[] ignored = {"VehicleBlockCollisionEvent", "EntityAirChangeEvent",
