@@ -6,6 +6,7 @@ end
 
 onEnable(
     function()
+        server:getLogger():info("Hello World!")
         lipt_event.on("EntityDamageByBlockEvent", onEntityDamage)
     end
 )

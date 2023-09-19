@@ -26,7 +26,7 @@ public final class Lipt extends JavaPlugin implements Listener {
     private List<LuaValue> loadedScripts = new ArrayList<>();
 
     public Lipt() {
-        this.scriptDir = this.getDataFolder();
+        this.scriptDir = new File(this.getDataFolder(), "scripts");
         this.prepareResources();
 
         try {
@@ -58,7 +58,7 @@ public final class Lipt extends JavaPlugin implements Listener {
 
     private void prepareResources() {
         this.scriptDir.mkdirs();
-        this.saveResource("helloworld.lua", true);
+        this.saveResource("scripts/helloworld.lua", true);
     }
 
     private void loadDefaultLibraries() {
@@ -83,11 +83,11 @@ public final class Lipt extends JavaPlugin implements Listener {
         }
 
         for (final File file : files) {
-            if (!file.getName().endsWith(".lua")) {
+            if (file.isDirectory() || !file.getName().endsWith(".lua")) {
                 continue;
             }
 
-            final LuaValue script = this.globals.load(new FileReader(new File(this.getDataFolder(), file.getName())), file.getName());
+            final LuaValue script = this.globals.load(new FileReader(file), file.getName());
 
             this.loadedScripts.add(script);
         }
