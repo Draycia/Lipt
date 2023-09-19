@@ -5,9 +5,9 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.List;
-import net.draycia.lipt.libs.lipt_adventure;
-import net.draycia.lipt.libs.lipt_event;
-import net.draycia.lipt.libs.lipt_log;
+import net.draycia.lipt.libs.LiptAdventure;
+import net.draycia.lipt.libs.LiptEvent;
+import net.draycia.lipt.libs.LiptLog;
 import org.bukkit.Bukkit;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -21,7 +21,7 @@ public final class Lipt extends JavaPlugin implements Listener {
 
     private final Globals globals = JsePlatform.debugGlobals();
     private File scriptDir;
-    private lipt_event liptEvent;
+    private LiptEvent liptEvent;
 
     private List<LuaValue> loadedScripts = new ArrayList<>();
 
@@ -48,11 +48,12 @@ public final class Lipt extends JavaPlugin implements Listener {
     @Override
     public void onEnable() {
         this.liptEvent.registerListeners();
+        this.liptEvent.onEnable();
     }
 
     @Override
     public void onDisable() {
-
+        this.liptEvent.onDisable();
     }
 
     private void prepareResources() {
@@ -61,10 +62,10 @@ public final class Lipt extends JavaPlugin implements Listener {
     }
 
     private void loadDefaultLibraries() {
-        new lipt_log().call(LuaValue.valueOf("lipt_log"), this.globals);
-        this.liptEvent = new lipt_event(this);
+        new LiptLog().call(LuaValue.valueOf("lipt_log"), this.globals);
+        this.liptEvent = new LiptEvent(this);
         this.liptEvent.call(LuaValue.valueOf("lipt_event"), this.globals);
-        new lipt_adventure().call(LuaValue.valueOf("lipt_adventure"), this.globals);
+        new LiptAdventure().call(LuaValue.valueOf("lipt_adventure"), this.globals);
 
         // Add Bukkit Server class to global and package.loaded
         final LuaValue serverName = LuaValue.valueOf("server");

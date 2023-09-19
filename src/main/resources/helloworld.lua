@@ -1,4 +1,4 @@
-server:getConsoleSender():sendMessage("Hello, World!")
+server:getConsoleSender():sendMessage("Loaded!")
 
 local message = component({
   text = "",
@@ -17,4 +17,9 @@ local onEvent = function(event)
     event:getPlayer():sendMessage(message)
 end
 
-lipt_event.on("PlayerJoinEvent", onEvent)
+onEnable(
+    function()
+        server:getConsoleSender():sendMessage("Enabled!")
+        lipt_event.on("PlayerJoinEvent", onEvent)
+    end
+)

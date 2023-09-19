@@ -10,14 +10,13 @@ import java.util.Map;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
-import org.bukkit.Bukkit;
 import org.luaj.vm2.LuaTable;
 import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.lib.OneArgFunction;
 import org.luaj.vm2.lib.TwoArgFunction;
 import org.luaj.vm2.lib.jse.CoerceJavaToLua;
 
-public class lipt_adventure extends TwoArgFunction {
+public class LiptAdventure extends TwoArgFunction {
 
     @Override
     public LuaValue call(final LuaValue modname, final LuaValue env) {

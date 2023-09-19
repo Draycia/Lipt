@@ -6,7 +6,7 @@ import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.lib.OneArgFunction;
 import org.luaj.vm2.lib.TwoArgFunction;
 
-public class lipt_log extends TwoArgFunction {
+public class LiptLog extends TwoArgFunction {
 
     @Override
     public LuaValue call(final LuaValue modname, final LuaValue env) {

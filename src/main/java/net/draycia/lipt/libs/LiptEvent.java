@@ -14,16 +14,29 @@ import org.bukkit.event.Listener;
 import org.bukkit.plugin.EventExecutor;
 import org.luaj.vm2.LuaError;
 import org.luaj.vm2.LuaValue;
+import org.luaj.vm2.lib.OneArgFunction;
 import org.luaj.vm2.lib.TwoArgFunction;
 import org.luaj.vm2.lib.jse.CoerceJavaToLua;
 import org.reflections.Reflections;
 
-public class lipt_event extends TwoArgFunction {
+public class LiptEvent extends TwoArgFunction {
 
-    private final on on;
+    private final On on;
+    private final OnEnable onEnable;
+    private final OnDisable onDisable;
 
-    public lipt_event(final Lipt lipt) {
-        this.on = new on(lipt);
+    public LiptEvent(final Lipt lipt) {
+        this.on = new On(lipt);
+        this.onEnable = new OnEnable();
+        this.onDisable = new OnDisable();
+    }
+
+    public void onEnable() {
+        this.onEnable.onEnable();
+    }
+
+    public void onDisable() {
+        this.onDisable.onDisable();
     }
 
     @Override
@@ -31,6 +44,11 @@ public class lipt_event extends TwoArgFunction {
         final LuaValue library = tableOf();
 
         library.set("on", this.on);
+        library.set("onEnable", this.onEnable);
+        library.set("onDisable", this.onDisable);
+
+        env.set(LuaValue.valueOf("onEnable"), this.onEnable);
+        env.set(LuaValue.valueOf("onDisable"), this.onDisable);
 
         env.set(modname, library);
         env.get("package").get("loaded").set(modname, library);
@@ -42,7 +60,35 @@ public class lipt_event extends TwoArgFunction {
         this.on.registerListeners();
     }
 
-    static class on extends TwoArgFunction implements Listener {
+    static class OnEnable extends OneArgFunction {
+        private final List<LuaValue> enableFunctions = new ArrayList<>();
+
+        @Override
+        public LuaValue call(final LuaValue arg) {
+            this.enableFunctions.add(arg);
+            return null;
+        }
+
+        public void onEnable() {
+            this.enableFunctions.forEach(LuaValue::call);
+        }
+    }
+
+    static class OnDisable extends OneArgFunction {
+        private final List<LuaValue> disableFunctions = new ArrayList<>();
+
+        @Override
+        public LuaValue call(final LuaValue arg) {
+            this.disableFunctions.add(arg);
+            return null;
+        }
+
+        public void onDisable() {
+            this.disableFunctions.forEach(LuaValue::call);
+        }
+    }
+
+    static class On extends TwoArgFunction implements Listener {
 
         private Set<Class<? extends Event>> eventClasses;
         private List<String> validEvents;
@@ -50,7 +96,7 @@ public class lipt_event extends TwoArgFunction {
         //private final List<LuaValue> playerJoinValues = new ArrayList<>();
         private final Lipt lipt;
 
-        on(final Lipt lipt) {
+        On(final Lipt lipt) {
             this.lipt = lipt;
             this.locateEvents();
         }
@@ -105,7 +151,7 @@ public class lipt_event extends TwoArgFunction {
             }
 
             for (final LuaValue listener : listeners) {
-                listener.call(CoerceJavaToLua.coerce(event)); // TODO: pass event objects into lua, how? idk
+                listener.call(CoerceJavaToLua.coerce(event));
             }
 
         }
